@@ -1,0 +1,122 @@
+From 7917dbda14ef64a5e7fdea48383a266577484ac8 Mon Sep 17 00:00:00 2001
+From: Tomas Orsava <torsava@redhat.com>
+Date: Wed, 19 Aug 2020 12:51:16 +0200
+Subject: [PATCH 2/2] FIX #6413 pip install <url> allow directory traversal
+ (tests)
+
+---
+ tests/unit/test_download.py | 85 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 85 insertions(+)
+
+diff --git a/tests/unit/test_download.py b/tests/unit/test_download.py
+index ee4b11c..15f99ec 100644
+--- a/tests/unit/test_download.py
++++ b/tests/unit/test_download.py
+@@ -1,5 +1,6 @@
+ import hashlib
+ import os
++import sys
+ from io import BytesIO
+ from shutil import rmtree, copy
+ from tempfile import mkdtemp
+@@ -13,6 +14,7 @@ import pip
+ from pip.exceptions import HashMismatch
+ from pip.download import (
+     PipSession, SafeFileCache, path_to_url, unpack_http_url, url_to_path,
++    _download_http_url, parse_content_disposition, sanitize_content_filename,
+     unpack_file_url,
+ )
+ from pip.index import Link
+@@ -123,6 +125,89 @@ def test_unpack_http_url_bad_downloaded_checksum(mock_unpack_file):
+         rmtree(download_dir)
+ 
+ 
++@pytest.mark.parametrize("filename, expected", [
++    ('dir/file', 'file'),
++    ('../file', 'file'),
++    ('../../file', 'file'),
++    ('../', ''),
++    ('../..', '..'),
++    ('/', ''),
++])
++def test_sanitize_content_filename(filename, expected):
++    """
++    Test inputs where the result is the same for Windows and non-Windows.
++    """
++    assert sanitize_content_filename(filename) == expected
++
++
++@pytest.mark.parametrize("filename, win_expected, non_win_expected", [
++    ('dir\\file', 'file', 'dir\\file'),
++    ('..\\file', 'file', '..\\file'),
++    ('..\\..\\file', 'file', '..\\..\\file'),
++    ('..\\', '', '..\\'),
++    ('..\\..', '..', '..\\..'),
++    ('\\', '', '\\'),
++])
++def test_sanitize_content_filename__platform_dependent(
++    filename,
++    win_expected,
++    non_win_expected
++):
++    """
++    Test inputs where the result is different for Windows and non-Windows.
++    """
++    if sys.platform == 'win32':
++        expected = win_expected
++    else:
++        expected = non_win_expected
++    assert sanitize_content_filename(filename) == expected
++
++
++@pytest.mark.parametrize("content_disposition, default_filename, expected", [
++    ('attachment;filename="../file"', 'df', 'file'),
++])
++def test_parse_content_disposition(
++    content_disposition,
++    default_filename,
++    expected
++):
++    actual = parse_content_disposition(content_disposition, default_filename)
++    assert actual == expected
++
++
++def test_download_http_url__no_directory_traversal(tmpdir):
++    """
++    Test that directory traversal doesn't happen on download when the
++    Content-Disposition header contains a filename with a ".." path part.
++    """
++    mock_url = 'http://www.example.com/whatever.tgz'
++    contents = b'downloaded'
++    link = Link(mock_url)
++
++    session = Mock()
++    resp = MockResponse(contents)
++    resp.url = mock_url
++    resp.headers = {
++        # Set the content-type to a random value to prevent
++        # mimetypes.guess_extension from guessing the extension.
++        'content-type': 'random',
++        'content-disposition': 'attachment;filename="../out_dir_file"'
++    }
++    session.get.return_value = resp
++
++    download_dir = tmpdir.join('download')
++    os.mkdir(download_dir)
++    file_path, content_type = _download_http_url(
++        link,
++        session,
++        download_dir,
++        hashes=None,
++    )
++    # The file should be downloaded to download_dir.
++    actual = os.listdir(download_dir)
++    assert actual == ['out_dir_file']
++
++
+ @pytest.mark.skipif("sys.platform == 'win32'")
+ def test_path_to_url_unix():
+     assert path_to_url('/tmp/file') == 'file:///tmp/file'
+-- 
+2.25.4
+

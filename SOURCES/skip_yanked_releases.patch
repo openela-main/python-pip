@@ -1,0 +1,91 @@
+From b97ef609100fbdd5895dab48cdab578dfeba396c Mon Sep 17 00:00:00 2001
+From: Lumir Balhar <lbalhar@redhat.com>
+Date: Fri, 10 Sep 2021 13:38:40 +0200
+Subject: [PATCH 1/2] Implement handling of yanked_reason from the HTML anchor
+
+---
+ pip/index.py | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/pip/index.py b/pip/index.py
+index f653f6e6a..ced52ce5a 100644
+--- a/pip/index.py
++++ b/pip/index.py
+@@ -865,7 +865,11 @@ class HTMLPage(object):
+                 )
+                 pyrequire = anchor.get('data-requires-python')
+                 pyrequire = unescape(pyrequire) if pyrequire else None
+-                yield Link(url, self, requires_python=pyrequire)
++                yanked_reason = anchor.get('data-yanked', default=None)
++                # Empty or valueless attribute are both parsed as empty string
++                if yanked_reason is not None:
++                    yanked_reason = unescape(yanked_reason)
++                yield Link(url, self, requires_python=pyrequire, yanked_reason=yanked_reason)
+ 
+     _clean_re = re.compile(r'[^a-z0-9$&+,/:;=?@.#%_\\|-]', re.I)
+ 
+@@ -879,7 +883,7 @@ class HTMLPage(object):
+ 
+ class Link(object):
+ 
+-    def __init__(self, url, comes_from=None, requires_python=None):
++    def __init__(self, url, comes_from=None, requires_python=None, yanked_reason=None):
+         """
+         Object representing a parsed link from https://pypi.python.org/simple/*
+ 
+@@ -900,6 +904,8 @@ class Link(object):
+         self.url = url
+         self.comes_from = comes_from
+         self.requires_python = requires_python if requires_python else None
++        self.yanked_reason = yanked_reason
++        self.yanked = yanked_reason is not None
+ 
+     def __str__(self):
+         if self.requires_python:
+-- 
+2.31.1
+
+From d8dc6ee5d6809736dce43dc1e57d497f9ff91f26 Mon Sep 17 00:00:00 2001
+From: Lumir Balhar <lbalhar@redhat.com>
+Date: Fri, 10 Sep 2021 13:43:22 +0200
+Subject: [PATCH 2/2] Skip all yanked candidates if possible
+
+---
+ pip/index.py | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+
+diff --git a/pip/index.py b/pip/index.py
+index ced52ce5a..823bbaf7d 100644
+--- a/pip/index.py
++++ b/pip/index.py
+@@ -489,6 +489,27 @@ class PackageFinder(object):
+         if applicable_candidates:
+             best_candidate = max(applicable_candidates,
+                                  key=self._candidate_sort_key)
++            # If we cannot find a non-yanked candidate,
++            # use the best one and print a warning about it.
++            # Otherwise, try to find another best candidate, ignoring
++            # all the yanked releases.
++            if getattr(best_candidate.location, "yanked", False):
++                nonyanked_candidates = [
++                    c for c in applicable_candidates
++                    if not getattr(c.location, "yanked", False)
++                ]
++
++                if set(nonyanked_candidates):
++                    best_candidate = max(nonyanked_candidates,
++                                         key=self._candidate_sort_key)
++                else:
++                    warning_message = (
++                        "WARNING: The candidate selected for download or install "
++                        "is a yanked version: '{}' candidate (version {} at {})"
++                    ).format(best_candidate.project, best_candidate.version, best_candidate.location)
++                    if best_candidate.location.yanked_reason:
++                        warning_message += "\nReason for being yanked: {}".format(best_candidate.location.yanked_reason)
++                    logger.warning(warning_message)
+         else:
+             best_candidate = None
+ 
+-- 
+2.31.1
+
