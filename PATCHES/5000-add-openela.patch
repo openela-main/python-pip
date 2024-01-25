@@ -1,0 +1,11 @@
+diff -Naurp pip-9.0.3-old/pip/_vendor/distro.py pip-9.0.3/pip/_vendor/distro.py
+--- pip-9.0.3-old/pip/_vendor/distro.py	2018-03-21 18:09:06.000000000 -0700
++++ pip-9.0.3/pip/_vendor/distro.py	2021-06-04 23:04:37.932019268 -0700
+@@ -139,6 +139,7 @@ def id():
+     "debian"        Debian
+     "rhel"          RedHat Enterprise Linux
+     "centos"        CentOS
++    "openela"         OpenELA
+     "fedora"        Fedora
+     "sles"          SUSE Linux Enterprise Server
+     "opensuse"      openSUSE
