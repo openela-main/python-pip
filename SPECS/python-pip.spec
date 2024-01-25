@@ -21,7 +21,7 @@
 
 Name:                 python-%{srcname}
 Version:              %{base_version}%{?prerel:~%{prerel}}
-Release:              6%{?dist}
+Release:              7%{?dist}
 Summary:              A tool for installing and managing Python packages
 
 # We bundle a lot of libraries with pip, which itself is under MIT license.
@@ -84,7 +84,15 @@ Patch5:               nowarn-pip._internal.main.patch
 # (This also breaks Python's test suite when warnings are treated as errors.)
 # Upstream issue: https://github.com/pypa/packaging/issues/368
 Patch6:               no-version-warning.patch
-Patch7:               5000-add-openela.patch
+
+# CVE-2007-4559, PEP-721, PEP-706: Use tarfile.data_filter for extracting
+# - Minimal downstream-only patch, to be replaced by upstream solution
+#   proposed in https://github.com/pypa/pip/pull/12214
+# - Test patch submitted upstream in the above pull request
+# - Patch for vendored distlib, accepted upstream:
+#   https://github.com/pypa/distlib/pull/201
+Patch7:               cve-2007-4559-tarfile.patch
+Patch8:               5000-add-openela.patch
 
 # Downstream only patch
 # Users might have local installations of pip from using
@@ -406,6 +414,10 @@ pytest_k='not completion and
 %changelog
 * Thu Jan 25 2024 Release Engineering <releng@openela.org> - %{base_version}%{?prerel:~%{prerel}}
 - Add openela to id list
+
+* Tue Aug 08 2023 Petr Viktorin <pviktori@redhat.com> - 21.2.3-7
+- Use tarfile.data_filter for extracting (CVE-2007-4559, PEP-721, PEP-706)
+Resolves:             RHBZ#2207997
 
 * Thu Feb 03 2022 Tomas Orsava <torsava@redhat.com> - 21.2.3-6
 - Add automatically generated Obsoletes tag with the python39- prefix
