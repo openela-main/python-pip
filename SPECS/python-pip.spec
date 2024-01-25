@@ -14,7 +14,7 @@
 Name:                 python-%{srcname}
 # When updating, update the bundled libraries versions bellow!
 Version:              9.0.3
-Release:              22%{?dist}.openela.0
+Release:              23%{?dist}.openela.0
 Summary:              A tool for installing and managing Python packages
 
 Group:                Development/Libraries
@@ -128,7 +128,14 @@ Patch11:              CVE-2021-3572.patch
 #   https://www.python.org/dev/peps/pep-0592/
 # Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=2000135
 Patch12:              skip_yanked_releases.patch
-Patch13:              5000-add-openela.patch
+
+# CVE-2007-4559, PEP-721, PEP-706: Use tarfile.data_filter for extracting
+# - Minimal downstream-only patch, to be replaced by upstream solution
+#   proposed in https://github.com/pypa/pip/pull/12214
+# - Patch for vendored distlib, accepted upstream:
+#   https://github.com/pypa/distlib/pull/201
+Patch13:              cve-2007-4559-tarfile.patch
+Patch14:              5000-add-openela.patch
 
 %global _description \
 pip is a package management system used to install and manage software packages \
@@ -273,6 +280,7 @@ popd
 %endif
 %patch11 -p1
 %patch12 -p1
+%patch13 -p1
 
 # this goes together with patch4
 rm pip/_vendor/certifi/*.pem
@@ -287,7 +295,11 @@ rm pip/_vendor/ordereddict.py
 # Remove windows executable binaries
 rm -v pip/_vendor/distlib/*.exe
 sed -i '/\.exe/d' setup.py
-%patch13 -p1
+
+# Backports for Python 2
+rm pip/_vendor/distlib/_backport/tarfile.py
+rm pip/_vendor/distlib/_backport/shutil.py
+%patch14 -p1
 
 %build
 %if %{without bootstrap}
@@ -386,6 +398,10 @@ py.test-%{python3_version} -m 'not network'
 %changelog
 * Thu Jan 25 2024 Release Engineering <releng@openela.org> - 9.0.3.openela.0
 - Add openela to id list
+
+* Tue Aug 08 2023 Petr Viktorin <pviktori@redhat.com> - 9.0.3-23
+- Use tarfile.data_filter for extracting (CVE-2007-4559, PEP-721, PEP-706)
+Resolves:             RHBZ#2218241
 
 * Wed Oct 06 2021 Charalampos Stratakis <cstratak@redhat.com> - 9.0.3-22
 - Remove bundled windows executables
