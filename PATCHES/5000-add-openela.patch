@@ -1,0 +1,19 @@
+diff -Naurp pip-21.2.3/src/pip/_vendor/distro.py pip-21.2.3-new/src/pip/_vendor/distro.py
+--- pip-21.2.3/src/pip/_vendor/distro.py        2021-08-06 03:26:52.000000000 -0700
++++ pip-21.2.3-new/src/pip/_vendor/distro.py    2022-03-29 12:48:11.041384274 -0700
+@@ -143,6 +143,7 @@ def id():
+     "debian"        Debian
+     "rhel"          RedHat Enterprise Linux
+     "centos"        CentOS
++    "openela"         OpenELA
+     "fedora"        Fedora
+     "sles"          SUSE Linux Enterprise Server
+     "opensuse"      openSUSE
+@@ -1133,6 +1134,7 @@ class LinuxDistribution(object):
+                              'manjaro-release',
+                              'oracle-release',
+                              'redhat-release',
++                             'openela-release',
+                              'sl-release',
+                              'slackware-version']
+             for basename in basenames:
