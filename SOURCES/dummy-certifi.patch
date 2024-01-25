@@ -1,0 +1,36 @@
+From 2c58d7301dd5a47570f782fe2fce7fbb1918f60c Mon Sep 17 00:00:00 2001
+From: Karolina Surma <ksurma@redhat.com>
+Date: Mon, 10 May 2021 16:38:50 +0200
+Subject: [PATCH] Dummy certifi patch
+
+Co-Authored-By: Tomas Hrnciar <thrnciar@redhat.com>
+---
+ src/pip/_vendor/certifi/core.py | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/pip/_vendor/certifi/core.py b/src/pip/_vendor/certifi/core.py
+index b8140cf..f1a0b01 100644
+--- a/src/pip/_vendor/certifi/core.py
++++ b/src/pip/_vendor/certifi/core.py
+@@ -14,6 +14,7 @@ class _PipPatchedCertificate(Exception):
+
+
+ try:
++    raise ImportError  # force fallback
+     # Return a certificate file on disk for a standalone pip zipapp running in
+     # an isolated build environment to use. Passing --cert to the standalone
+     # pip does not work since requests calls where() unconditionally on import.
+@@ -67,9 +68,7 @@ except ImportError:
+     # If we don't have importlib.resources, then we will just do the old logic
+     # of assuming we're on the filesystem and munge the path directly.
+     def where():
+-        f = os.path.dirname(__file__)
+-
+-        return os.path.join(f, "cacert.pem")
++        return '/etc/pki/tls/certs/ca-bundle.crt'
+
+
+ def contents():
+--
+2.30.2
+
