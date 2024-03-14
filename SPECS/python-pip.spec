@@ -21,7 +21,7 @@
 
 Name:                 python-%{srcname}
 Version:              %{base_version}%{?prerel:~%{prerel}}
-Release:              7%{?dist}
+Release:              7%{?dist}.1
 Summary:              A tool for installing and managing Python packages
 
 # We bundle a lot of libraries with pip, which itself is under MIT license.
@@ -197,6 +197,10 @@ BuildRequires:        python%{python3_pkgversion}-wheel
 BuildRequires:        ca-certificates
 Requires:             ca-certificates
 
+# pip has to require explicit version of python3 that provides
+# filters in tarfile module (fix for CVE-2007-4559).
+Requires:             python3 >= 3.9.17-2
+
 # This was previously required and we keep it recommended because a lot of
 # sdists installed via pip will try to import setuptools.
 # But pip doesn't actually require setuptools.
@@ -242,10 +246,11 @@ Requires:             ca-certificates
 Provides:             %{name}-wheel = %{version}-%{release}
 Obsoletes:            %{name}-wheel < %{version}-%{release}
 
-# Older versions of python3-libs expect Python wheels at the old unversioned
+# Older versions of python3-libs (< 3.9.9-2) expect Python wheels at the old unversioned
 # location, so we conflict with the old Python versions that wouldn't work with
 # the new wheel location.
-Conflicts:            python3-libs < 3.9.9-2
+# Moreover, Python older than (3.9.17-2) does not provide tarfile filters (fix for CVE-2007-4559).
+Conflicts:            python3-libs < 3.9.17-2
 
 # Virtual provides for the packages bundled by pip:
 %{bundled 3}
@@ -412,8 +417,12 @@ pytest_k='not completion and
 %{python_wheel_dir}/%{python_wheel_name}
 
 %changelog
-* Thu Jan 25 2024 Release Engineering <releng@openela.org> - %{base_version}%{?prerel:~%{prerel}}
+* Thu Mar 14 2024 Release Engineering <releng@openela.org> - %{base_version}%{?prerel:~%{prerel}}
 - Add openela to id list
+
+* Wed Feb 14 2024 Lumír Balhar <lbalhar@redhat.com> - 21.2.3-7.1
+- Require Python with tarfile filters
+Resolves:             RHEL-25452
 
 * Tue Aug 08 2023 Petr Viktorin <pviktori@redhat.com> - 21.2.3-7
 - Use tarfile.data_filter for extracting (CVE-2007-4559, PEP-721, PEP-706)
