@@ -14,7 +14,7 @@
 Name:                 python-%{srcname}
 # When updating, update the bundled libraries versions bellow!
 Version:              9.0.3
-Release:              23%{?dist}.openela.0
+Release:              23%{?dist}.1.openela.0
 Summary:              A tool for installing and managing Python packages
 
 Group:                Development/Libraries
@@ -172,6 +172,9 @@ Requires:             platform-python-setuptools
 
 BuildRequires:        ca-certificates
 Requires:             ca-certificates
+# pip has to require explicit version of platform-python that provides
+# filters in tarfile module (fix for CVE-2007-4559).
+Requires:             platform-python >= 3.6.8-55
 
 # Virtual provides for the packages bundled by pip.
 # See the python2 list above for instructions.
@@ -224,6 +227,8 @@ A documentation for a tool for installing and managing Python packages
 %if %{without bootstrap}
 %package -n python3-%{srcname}-wheel
 Summary:              The pip wheel
+# Older Python does not provide tarfile filters (fix for CVE-2007-4559).
+Conflicts:            platform-python < 3.6.8-55
 
 # Virtual provides for the packages bundled by pip.
 # You can find the versions in pip/_vendor/vendor.txt file.
@@ -396,8 +401,12 @@ py.test-%{python3_version} -m 'not network'
 %endif
 
 %changelog
-* Thu Jan 25 2024 Release Engineering <releng@openela.org> - 9.0.3.openela.0
+* Tue Apr 09 2024 Release Engineering <releng@openela.org> - 9.0.3.openela.0
 - Add openela to id list
+
+* Wed Feb 14 2024 Lumír Balhar <lbalhar@redhat.com> - 9.0.3-23.1
+- Require Python with tarfile filters
+Resolves:             RHEL-25449
 
 * Tue Aug 08 2023 Petr Viktorin <pviktori@redhat.com> - 9.0.3-23
 - Use tarfile.data_filter for extracting (CVE-2007-4559, PEP-721, PEP-706)
