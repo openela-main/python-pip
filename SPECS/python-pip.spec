@@ -21,7 +21,7 @@
 
 Name:                 python-%{srcname}
 Version:              %{base_version}%{?prerel:~%{prerel}}
-Release:              7%{?dist}.1
+Release:              8%{?dist}
 Summary:              A tool for installing and managing Python packages
 
 # We bundle a lot of libraries with pip, which itself is under MIT license.
@@ -249,7 +249,7 @@ Obsoletes:            %{name}-wheel < %{version}-%{release}
 # Older versions of python3-libs (< 3.9.9-2) expect Python wheels at the old unversioned
 # location, so we conflict with the old Python versions that wouldn't work with
 # the new wheel location.
-# Moreover, Python older than (3.9.17-2) does not provide tarfile filters (fix for CVE-2007-4559).
+# Moreover, Python older than (3.9.16-2) does not provide tarfile filters (fix for CVE-2007-4559).
 Conflicts:            python3-libs < 3.9.17-2
 
 # Virtual provides for the packages bundled by pip:
@@ -417,12 +417,12 @@ pytest_k='not completion and
 %{python_wheel_dir}/%{python_wheel_name}
 
 %changelog
-* Thu Mar 14 2024 Release Engineering <releng@openela.org> - %{base_version}%{?prerel:~%{prerel}}
+* Tue Apr 30 2024 Release Engineering <releng@openela.org> - %{base_version}%{?prerel:~%{prerel}}
 - Add openela to id list
 
-* Wed Feb 14 2024 Lumír Balhar <lbalhar@redhat.com> - 21.2.3-7.1
+* Wed Feb 14 2024 Lumír Balhar <lbalhar@redhat.com> - 21.2.3-8
 - Require Python with tarfile filters
-Resolves:             RHEL-25452
+Resolves:             RHEL-25451
 
 * Tue Aug 08 2023 Petr Viktorin <pviktori@redhat.com> - 21.2.3-7
 - Use tarfile.data_filter for extracting (CVE-2007-4559, PEP-721, PEP-706)
