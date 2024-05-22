@@ -14,7 +14,7 @@
 Name:                 python-%{srcname}
 # When updating, update the bundled libraries versions bellow!
 Version:              9.0.3
-Release:              23%{?dist}.1.openela.0
+Release:              24%{?dist}.openela.0
 Summary:              A tool for installing and managing Python packages
 
 Group:                Development/Libraries
@@ -401,12 +401,12 @@ py.test-%{python3_version} -m 'not network'
 %endif
 
 %changelog
-* Tue Apr 09 2024 Release Engineering <releng@openela.org> - 9.0.3.openela.0
+* Wed May 22 2024 Release Engineering <releng@openela.org> - 9.0.3.openela.0
 - Add openela to id list
 
-* Wed Feb 14 2024 Lumír Balhar <lbalhar@redhat.com> - 9.0.3-23.1
+* Wed Feb 14 2024 Lumír Balhar <lbalhar@redhat.com> - 9.0.3-24
 - Require Python with tarfile filters
-Resolves:             RHEL-25449
+Resolves:             RHEL-25446
 
 * Tue Aug 08 2023 Petr Viktorin <pviktori@redhat.com> - 9.0.3-23
 - Use tarfile.data_filter for extracting (CVE-2007-4559, PEP-721, PEP-706)
