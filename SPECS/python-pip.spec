@@ -13,7 +13,7 @@
 %endif
 
 %global srcname pip
-%global base_version 21.2.3
+%global base_version 21.3.1
 %global upstream_version %{base_version}%{?prerel}
 %global python_wheel_name %{srcname}-%{upstream_version}-py3-none-any.whl
 
@@ -21,7 +21,7 @@
 
 Name:                 python-%{srcname}
 Version:              %{base_version}%{?prerel:~%{prerel}}
-Release:              8%{?dist}
+Release:              1%{?dist}
 Summary:              A tool for installing and managing Python packages
 
 # We bundle a lot of libraries with pip, which itself is under MIT license.
@@ -129,27 +129,27 @@ Packages" or "Pip Installs Python".
 # You can generate it with:
 # %%{_rpmconfigdir}/pythonbundles.py --namespace 'python%%{1}dist' src/pip/_vendor/vendor.txt
 %global bundled() %{expand:
-Provides:             bundled(python%{1}dist(appdirs)) = 1.4.4
 Provides:             bundled(python%{1}dist(cachecontrol)) = 0.12.6
 Provides:             bundled(python%{1}dist(certifi)) = 2021.5.30
 Provides:             bundled(python%{1}dist(chardet)) = 4
 Provides:             bundled(python%{1}dist(colorama)) = 0.4.4
-Provides:             bundled(python%{1}dist(distlib)) = 0.3.2
-Provides:             bundled(python%{1}dist(distro)) = 1.5
+Provides:             bundled(python%{1}dist(distlib)) = 0.3.3
+Provides:             bundled(python%{1}dist(distro)) = 1.6
 Provides:             bundled(python%{1}dist(html5lib)) = 1.1
 Provides:             bundled(python%{1}dist(idna)) = 3.2
 Provides:             bundled(python%{1}dist(msgpack)) = 1.0.2
 Provides:             bundled(python%{1}dist(packaging)) = 21
-Provides:             bundled(python%{1}dist(pep517)) = 0.11
-Provides:             bundled(python%{1}dist(progress)) = 1.5
+Provides:             bundled(python%{1}dist(pep517)) = 0.12
+Provides:             bundled(python%{1}dist(platformdirs)) = 2.4
+Provides:             bundled(python%{1}dist(progress)) = 1.6
 Provides:             bundled(python%{1}dist(pyparsing)) = 2.4.7
 Provides:             bundled(python%{1}dist(requests)) = 2.26
-Provides:             bundled(python%{1}dist(resolvelib)) = 0.7.1
+Provides:             bundled(python%{1}dist(resolvelib)) = 0.8
 Provides:             bundled(python%{1}dist(setuptools)) = 44
 Provides:             bundled(python%{1}dist(six)) = 1.16
 Provides:             bundled(python%{1}dist(tenacity)) = 8.0.1
 Provides:             bundled(python%{1}dist(tomli)) = 1.0.3
-Provides:             bundled(python%{1}dist(urllib3)) = 1.26.6
+Provides:             bundled(python%{1}dist(urllib3)) = 1.26.7
 Provides:             bundled(python%{1}dist(webencodings)) = 0.5.1
 }
 
@@ -376,11 +376,13 @@ pytest_k='not completion and
           not test_from_link_vcs_without_source_dir and
           not test_should_cache_git_sha'
 
+# test_pep517 and test_pep660 are ignored entirely, as they import tomli_w and we don't have that packaged yet
 # --deselect'ed tests are not compatible with the latest virtualenv
 # These files contain almost 500 tests so we should enable them back
 # as soon as pip will be compatible upstream
 # https://github.com/pypa/pip/pull/8441
 %pytest -m 'not network' -k "$(echo $pytest_k)" \
+    --ignore tests/functional/test_pep660.py --ignore tests/functional/test_pep517.py \
     --deselect tests/functional --deselect tests/lib/test_lib.py --deselect tests/unit/test_build_env.py
 %endif
 
@@ -417,8 +419,12 @@ pytest_k='not completion and
 %{python_wheel_dir}/%{python_wheel_name}
 
 %changelog
-* Tue Apr 30 2024 Release Engineering <releng@openela.org> - %{base_version}%{?prerel:~%{prerel}}
+* Tue Nov 12 2024 Release Engineering <releng@openela.org> - %{base_version}%{?prerel:~%{prerel}}
 - Add openela to id list
+
+* Tue Mar 19 2024 Lumír Balhar <lbalhar@redhat.com> - 21.3.1-1
+- Update to 21.3.1
+Resolves:             RHEL-29310
 
 * Wed Feb 14 2024 Lumír Balhar <lbalhar@redhat.com> - 21.2.3-8
 - Require Python with tarfile filters
