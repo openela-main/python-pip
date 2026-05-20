@@ -21,7 +21,7 @@
 
 Name:                 python-%{srcname}
 Version:              %{base_version}%{?prerel:~%{prerel}}
-Release:              1%{?dist}
+Release:              2%{?dist}
 Summary:              A tool for installing and managing Python packages
 
 # We bundle a lot of libraries with pip, which itself is under MIT license.
@@ -212,7 +212,7 @@ Recommends:           python%{python3_pkgversion}-setuptools
 # Virtual provides for the packages bundled by pip:
 %{bundled 3}
 
-Provides:             pip = %{version}-%{release}
+Provides:             pip = 1:%{version}-%{release}
 Conflicts:            python-pip < %{version}-%{release}
 
 %{crypt_compat_recommends 3}
@@ -419,8 +419,12 @@ pytest_k='not completion and
 %{python_wheel_dir}/%{python_wheel_name}
 
 %changelog
-* Tue Nov 12 2024 Release Engineering <releng@openela.org> - %{base_version}%{?prerel:~%{prerel}}
+* Wed May 20 2026 Release Engineering <releng@openela.org> - %{base_version}%{?prerel:~%{prerel}}
 - Add openela to id list
+
+* Tue May 19 2026 Miro Hrončok <mhroncok@redhat.com> - 21.3.1-2
+- Bump epoch for the virtual pip Provide, for this package to take precedence over python3.14-pip
+Resolves:             RHEL-178095
 
 * Tue Mar 19 2024 Lumír Balhar <lbalhar@redhat.com> - 21.3.1-1
 - Update to 21.3.1
